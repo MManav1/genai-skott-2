@@ -31,17 +31,35 @@ def send_lyzr_chat_message(message, user_id="default_user", agent_id="66d96db817
 # if result:
 #     print(result)
 
+import anthropic
+
 def generate_content_with_claude(keywords):
-    # This function will use Claude to generate content based on the keywords
-    prompt = f"Generate SEO content using the following keywords: {', '.join(keywords)}"
-    response = requests.post("https://api.claude.ai/generate", json={"prompt": prompt})
-    if response.status_code == 200:
-        data = response.json()
-        content = data.get('content', '')
-        return content
-    else:
-        st.error("Failed to generate content with Claude")
-        return ""
+    client = anthropic.Anthropic(api_key=st.secrets["claude_api_key"])
+
+    prompt = f"""
+    Short tail and long tail keywords: {keywords}
+    
+    Using the provided keywords and best performing paragraphs, create an engaging and extensive blog post.
+    """
+
+    message = client.messages.create(
+        model="claude-3-5-sonnet-20240620",
+        max_tokens=1000,
+        temperature=0,
+        system="You will be given a set of short tail and long tail keywords on a given topic, plus the best performing paragraphs of that blog. Take that information and create an engaging but extensive blog by yourself.",
+        messages=[
+            {"role": "user", "content": prompt}
+        ]
+    )
+
+    return message.content
+
+# Example usage:
+# api_key = "your_api_key_here"
+# keywords = "SEO, content marketing, blog optimization"
+# best_paragraphs = "Paragraph 1... Paragraph 2..."
+# content = generate_content_with_claude(api_key, keywords, best_paragraphs)
+# print(content)
 
 def main():
     st.title("SEO Content Writing Agent")
